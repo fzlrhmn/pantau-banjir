@@ -52,7 +52,7 @@ $autoload['packages'] = array();
 |	$autoload['libraries'] = array('database', 'session', 'xmlrpc');
 */
 
-$autoload['libraries'] = array('database','session','form_validation','geophp','encrypt','user_agent','html2pdf', 'curl','csvreader');
+$autoload['libraries'] = array('database','session','form_validation','geophp','encrypt','user_agent','html2pdf', 'curl','csvtojson');
 
 
 /*

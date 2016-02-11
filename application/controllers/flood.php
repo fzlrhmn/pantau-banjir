@@ -8,6 +8,7 @@ class Flood extends CI_Controller {
 		parent::__construct();
 		$this->load->model('model_store');
 		$this->load->model('model_kelurahan');
+		$this->load->model('model_rw');
 		$this->load->model('model_flood');
 	}
 
@@ -18,6 +19,8 @@ class Flood extends CI_Controller {
 
 	public function geo_qlue()
 	{
+		$qlue_feed = "https://docs.google.com/spreadsheets/d/1ZOdy3j2FVkhLBMI_aDKoU3BV5qurI6hsPKHZHNmzoNA/pub?gid=0&single=true&output=csv";
+		
 		# Build GeoJSON feature collection array
 		$geojson = array(
 		   'type'      => 'FeatureCollection',
@@ -25,7 +28,7 @@ class Flood extends CI_Controller {
 		);
 
 		$data['kelurahan'] 		= $this->model_kelurahan->get_kelurahan_geo();
-		$data['report_qlue'] 	= $this->model_flood->get_flood();
+		$data['report_qlue'] 	= $this->csvtojson->csv_to_json($qlue_feed);
 
 		foreach ($data['kelurahan'] as $item) {
 			$properties = $item;
@@ -49,10 +52,31 @@ class Flood extends CI_Controller {
 
 	public function geo_bpbd($fromTime = false, $toTime = false)
 	{
-		$data = $this->model_flood->get_bpbd_json();
-		$resultData = json_decode($data);
+		# Build GeoJSON feature collection array
+		$geojson = array(
+		   'type'      => 'FeatureCollection',
+		   'features'  => array()
+		);
 
-		$this->output->set_content_type('application/json')->set_output(json_encode($resultData));
+		$data['rw'] 	= $this->model_rw->get_rw_geo();
+		$reports 		= $this->model_flood->get_bpbd_json();
+
+		foreach ($data['rw'] as $item) {
+			$properties = $item;
+			$data_banjir 					= $this->model_flood->get_flood_bpbd($reports->reports, $item['id']);
+			$properties['banjir']			= $data_banjir;
+
+			unset($properties['wkb']);
+
+			$feature = array(
+		         'type' => 'Feature',
+		         'properties' => $properties,
+		         'geometry' => json_decode($this->geophp->wkb_to_json($item['wkb']))
+		    );
+		    # Add feature arrays to feature collection array
+		    array_push($geojson['features'], $feature);
+		}
+		$this->output->set_content_type('application/json')->set_output(json_encode($geojson));
 	}
 }
 

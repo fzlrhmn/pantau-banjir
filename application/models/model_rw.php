@@ -3,13 +3,19 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 class Model_rw extends CI_Model {
 
+	public function __construct()
+	{
+		$this->load->database();
+	}
+
 	public function get_rw_geo()
 	{
 		$this->db->select('	asWkb(app_rw_jakarta.SHAPE) as wkb,  
 							app_rw_jakarta.kab_name as nama_kodya,
 							app_rw_jakarta.kec_name as nama_kecamatan,
 							app_rw_jakarta.kel_name as nama_kelurahan, 
-							app_rw_jakarta.OGR_FID');
+							app_rw_jakarta.rw as rw, 
+							app_rw_jakarta.id');
 		$this->db->from('app_rw_jakarta');
 		$query = $this->db->get();
 		$result = $query->result_array();

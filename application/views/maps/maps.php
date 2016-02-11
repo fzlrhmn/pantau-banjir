@@ -29,7 +29,12 @@
 				</div>
 				<div class="checkbox">
 				    <label>
-						<input type="checkbox" id="laporan_petajakarta"> Laporan Peta Jakarta
+						<input type="checkbox" id="laporan_petajakarta"> Laporan Banjir PetaJakarta
+				    </label>
+				</div>
+				<div class="checkbox">
+				    <label>
+						<input type="checkbox" id="laporan_bpbd"> Laporan Banjir BPBD
 				    </label>
 				</div>
 			</div>
@@ -46,6 +51,7 @@
 		var root = "<?php echo base_url(); ?>";
 		var kelurahan_layer = null;
 		var petajakarta_layer = null;
+		var bpbd_layer = null;
 
 		/**
 		 * 
@@ -144,6 +150,14 @@
 		    };
 		}
 
+		function getState(d) {
+		    return d >= 4  ? '> 150 Cm' :
+		           d >= 3   ? '71 - 150 Cm' :
+		           d >= 2   ? '10 - 70 Cm' :
+		           d >= 1   ? 'Use Caution' :
+		                      'No Flooding';
+		}
+
 		/*
 		Set Kelurahan Layer
 		 */
@@ -189,7 +203,7 @@
 									'</div>';
 
 			          			layer.bindPopup(popupContent, popupOptions);
-		        				
+
 		        			}
 		          			// Get bounds of polygon
 		          			var bounds = layer.getBounds();
@@ -233,11 +247,26 @@
 		      		$('#loading_tematik').show();
 		    	},
 		    	success: function (data) {
+		    		console.log(data.QueryTime);
+		    		var dateTime = data.QueryTime.split("T");
+		    		var time 	= dateTime[1];
+		    		var date 	= dateTime[0];
 		      		petajakarta_layer = L.geoJson(data, {
 		        		style: style_petajakarta_flood,
 		        		onEachFeature: function (feature, layer) {
 		        			if (feature.properties.state > 0) {
-		        				layer.bindPopup(feature.properties.level_name+ ', Kelurahan ' +feature.properties.parent_name, popupOptions);
+		        				var popupContent = '<div class="row">' + 
+									'<div class="col-sm-12">' + 
+									'<table class="custom-table">' +
+									'<tr><td valign="top" width="90">RW</td><td width="10" valign="top"> : </td><td>' + feature.properties.level_name + '</td></tr>' +
+									'<tr><td valign="top" width="90">Kelurahan</td><td width="10" valign="top"> : </td><td>' + feature.properties.parent_name + '</td></tr>' +
+									'<tr><td valign="top" width="90">State</td><td width="10" valign="top"> : </td><td>' + getState(feature.properties.state) + '</td></tr>' +
+									'</table>' +
+									
+			        			    '</div>' +
+									'</br>' +
+									'</div>';
+		        				layer.bindPopup(popupContent, popupOptions);
 		        			}
 		          			// Get bounds of polygon
 		          			var bounds = layer.getBounds();
@@ -248,6 +277,52 @@
 		        		}
 		      		});
 		      		petajakarta_layer.addTo(map);
+		    	},
+		    	complete:function () {
+		      		console.log('send complete');
+		      		$('#loading_tematik').hide();
+				      	// $('#loading_tematik').show();
+				      	// alert('Peta Tematik Telah Dirubah. Silahkan Pilih Menu Tematik.');
+		    	},
+		    	error:function (xhr) {
+		      		console.log(xhr.statusText + xhr.responseText);
+		      		alert('Terjadi Kesalahan. Silahkan Periksa Koneksi Internet Anda.');
+		    	}
+		  	});
+		}
+
+		/*
+		Set BPBD Layer
+		 */
+		function set_bpbd_layer() {
+		  	if ( bpbd_layer != undefined ){
+		    	map.removeLayer( bpbd_layer );
+		  	}
+
+		  	$.ajax({
+		    	type : "GET",
+		    	async : true,
+		    	global : false,
+		    	url : root + "index.php/geo/bpbd",
+		    	// dataType : 'json',
+		    	beforeSend:function () {
+		      		console.log('sending');
+		      		$('#loading_tematik').show();
+		    	},
+		    	success: function (data) {
+		      		bpbd_layer = L.geoJson(data, {
+		        		style: style_kelurahan,
+		        		onEachFeature: function (feature, layer) {
+		        			layer.bindPopup(feature.properties.rw, popupOptions);
+		          			// Get bounds of polygon
+		          			var bounds = layer.getBounds();
+		          			// Get center of bounds
+		          			var center = bounds.getCenter();
+		          			// Use center to put marker on map
+		          			//var marker = L.marker(center).addTo(map);
+		        		}
+		      		});
+		      		bpbd_layer.addTo(map);
 		    	},
 		    	complete:function () {
 		      		console.log('send complete');
@@ -349,6 +424,20 @@
 		    else {
 		        if (petajakarta_layer != undefined) {
 		            map.removeLayer(petajakarta_layer);
+		        };
+		    }
+		})
+
+		$('#laporan_bpbd').change(function () {
+		    check = $("#laporan_bpbd").prop("checked");
+		    // checked
+		    if( check ) {
+		        set_bpbd_layer();
+		    } 
+		    // unchecked
+		    else {
+		        if (bpbd_layer != undefined) {
+		            map.removeLayer(bpbd_layer);
 		        };
 		    }
 		})

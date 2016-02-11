@@ -3,60 +3,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 class Model_flood extends CI_Model {
 
-	public function get_flood()
-	{
-		// Set your CSV feed
-		$feed = "https://docs.google.com/spreadsheets/d/1ZOdy3j2FVkhLBMI_aDKoU3BV5qurI6hsPKHZHNmzoNA/pub?gid=0&single=true&output=csv";
-		//$feed = 'https://docs.google.com/spreadsheets/d/1K4Q8CJc0Lbr7p-R50QQD8UYlCwZ6XPdC8jlf3y1CbC4/pub?gid=1690435514&single=true&output=csv';
-
-		// Arrays we'll use later
-		$keys = array();
-		$newArray = array();
-
-		// Function to convert CSV into associative array
-		function csvToArray($file, $delimiter) { 
-		  if (($handle = fopen($file, 'r')) !== FALSE) { 
-		    $i = 0; 
-		    while (($lineArray = fgetcsv($handle, 4000, $delimiter, '"')) !== FALSE) { 
-		      for ($j = 0; $j < count($lineArray); $j++) { 
-		        $arr[$i][$j] = $lineArray[$j]; 
-		      } 
-		      $i++; 
-		    } 
-		    fclose($handle); 
-		  } 
-		  return $arr; 
-		} 
-
-		// Do it
-		$data = csvToArray($feed, ',');
-
-		// Set number of elements (minus 1 because we shift off the first row)
-		$count = count($data) - 1;
-		  
-		//Use first row for names  
-		$labels = array_shift($data);  
-		foreach ($labels as $label) {
-		  $keys[] = $label;
-		}
-
-		// Add Ids, just in case we want them later
-		$keys[] = 'id';
-		for ($i = 0; $i < $count; $i++) {
-		  $data[$i][] = $i;
-		}
-		  
-		// Bring it all together
-		for ($j = 0; $j < $count; $j++) {
-		  $d = array_combine($keys, $data[$j]);
-		  $newArray[$j] = $d;
-		}
-
-		// Print it out as JSON
-		return $newArray;
-	}
-
-	private function set_flood()
+	private function set_qlue_flood()
 	{
 		// $this->db->insert_batch('alerts', $data);
 	}
@@ -115,10 +62,24 @@ class Model_flood extends CI_Model {
 		return $flood_color;
 	}
 
+	public function get_flood_bpbd($array_report, $id_rw)
+	{
+		$rw_flood = array();
+		for ($i=0; $i < count($array_report); $i++) { 
+			if ($array_report[$i]->ID_DISTRIK == $id_rw) {
+				if ($array_report[$i]->KETINGGIAN > 0) {
+					array_push($rw_flood, $array_report[$i]);	
+				}
+			}
+		}
+
+		return $rw_flood;
+	}
+
 	public function get_bpbd_json()
 	{
 		$data = $this->curl->simple_get('http://bpbd.jakarta.go.id/cgi-bin/flr?fromTime=201602110000&toTime=201602112359');
-		return $data;
+		return json_decode($data);
 	}
 }
 

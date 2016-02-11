@@ -41,6 +41,7 @@
 $route['default_controller'] = "welcome";
 $route['404_override'] = '';
 
-
+$route['geo/qlue'] = "flood/geo_qlue";
+$route['geo/bpbd'] = "flood/geo_bpbd";
 /* End of file routes.php */
 /* Location: ./application/config/routes.php */

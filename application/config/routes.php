@@ -38,7 +38,7 @@
 |
 */
 
-$route['default_controller'] = "welcome";
+$route['default_controller'] = "flood/index";
 $route['404_override'] = '';
 
 $route['geo/qlue'] = "flood/geo_qlue";

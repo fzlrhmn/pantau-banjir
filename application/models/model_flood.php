@@ -76,6 +76,42 @@ class Model_flood extends CI_Model {
 		return $rw_flood;
 	}
 
+	public function get_bpbd_flood_average($flood_array)
+	{
+		if (count($flood_array) != 0) {
+			$flood_number = array();
+			for ($i=0; $i < count($flood_array); $i++) { 
+				if ( $flood_array[$i]->KETINGGIAN != 0 ) {
+					array_push($flood_number, $flood_array[$i]->KETINGGIAN);
+				}
+			}
+			$count = array_sum($flood_number) / count($flood_number);	
+			
+			$average_flood = round($count, 2);
+		}
+		else{
+			$average_flood = 0;
+		}
+		return $average_flood;
+	}
+
+	public function get_bpbd_flood_max($flood_array)
+	{
+		if (count($flood_array) != 0) {
+			$flood_number = array();
+			for ($i=0; $i < count($flood_array); $i++) { 
+				if ( $flood_array[$i]->KETINGGIAN != 0 ) {
+					array_push($flood_number, $flood_array[$i]->KETINGGIAN);
+				}
+			}
+			$max_flood = max($flood_number);
+		}
+		else{
+			$max_flood = 0;
+		}
+		return $max_flood;
+	}
+
 	public function get_bpbd_json()
 	{
 		$data = $this->curl->simple_get('http://bpbd.jakarta.go.id/cgi-bin/flr?fromTime=201602110000&toTime=201602112359');

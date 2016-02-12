@@ -17,6 +17,10 @@ class Flood extends CI_Controller {
 		$this->load->view('maps/maps');
 	}
 
+	/*
+	 Routes : geo/qlue
+	 */
+
 	public function geo_qlue()
 	{
 		$qlue_feed = "https://docs.google.com/spreadsheets/d/1ZOdy3j2FVkhLBMI_aDKoU3BV5qurI6hsPKHZHNmzoNA/pub?gid=0&single=true&output=csv";
@@ -50,6 +54,9 @@ class Flood extends CI_Controller {
 		$this->output->set_content_type('application/json')->set_output(json_encode($geojson));
 	}
 
+	/*
+	 Routes : geo/bpbd
+	 */
 	public function geo_bpbd($fromTime = false, $toTime = false)
 	{
 		# Build GeoJSON feature collection array
@@ -64,6 +71,8 @@ class Flood extends CI_Controller {
 		foreach ($data['rw'] as $item) {
 			$properties = $item;
 			$data_banjir 					= $this->model_flood->get_flood_bpbd($reports->reports, $item['id']);
+			$properties['flood_average']	= $this->model_flood->get_bpbd_flood_average($data_banjir);
+			$properties['flood_max']		= $this->model_flood->get_bpbd_flood_max($data_banjir);
 			$properties['banjir']			= $data_banjir;
 
 			unset($properties['wkb']);

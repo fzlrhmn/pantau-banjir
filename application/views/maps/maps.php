@@ -24,17 +24,17 @@
 			<div class="col-md-3 info">
 				<div class="checkbox">
 				    <label>
-						<input type="checkbox" id="laporan_qlue"> Laporan Banjir QLUE
+						<input type="checkbox" id="laporan_qlue"> Laporan Banjir QLUE &nbsp;<i class="fa fa-spinner fa-spin" id="loading_qlue"></i>
 				    </label>
 				</div>
 				<div class="checkbox">
 				    <label>
-						<input type="checkbox" id="laporan_petajakarta"> Laporan Banjir PetaJakarta
+						<input type="checkbox" id="laporan_petajakarta"> Laporan Banjir PetaJakarta &nbsp;<i class="fa fa-spinner fa-spin" id="loading_petajakarta"></i>
 				    </label>
 				</div>
 				<div class="checkbox">
 				    <label>
-						<input type="checkbox" id="laporan_bpbd"> Laporan Banjir BPBD
+						<input type="checkbox" id="laporan_bpbd"> Laporan Banjir BPBD &nbsp;<i class="fa fa-spinner fa-spin" id="loading_bpbd"></i>
 				    </label>
 				</div>
 			</div>
@@ -43,6 +43,20 @@
     <script src="<?php echo base_url('/bower_components/jquery/dist/jquery.min.js'); ?>"></script>
     <script src="<?php echo base_url('/bower_components/bootstrap/dist/js/bootstrap.min.js'); ?>"></script>
 	<script type="text/javascript">
+		$('#loading_qlue').hide();
+		$('#loading_qlue').ajaxStop(function () {
+		  $(this).show();
+		})
+
+		$('#loading_petajakarta').hide();
+		$('#loading_petajakarta').ajaxStop(function () {
+		  $(this).show();
+		})
+
+		$('#loading_bpbd').hide();
+		$('#loading_bpbd').ajaxStop(function () {
+		  $(this).show();
+		})
 		/**
 		 * 
 		 *  Variables Initialization
@@ -174,7 +188,7 @@
 		    	// dataType : 'json',
 		    	beforeSend:function () {
 		      		console.log('sending');
-		      		$('#loading_tematik').show();
+		      		$('#loading_qlue').show();
 		    	},
 		    	success: function (data) {
 		      		kelurahan_layer = L.geoJson(data, {
@@ -217,8 +231,8 @@
 		    	},
 		    	complete:function () {
 		      		console.log('send complete');
-		      		$('#loading_tematik').hide();
-				      	// $('#loading_tematik').show();
+		      		$('#loading_qlue').hide();
+				      	// $('#loading_qlue').show();
 				      	// alert('Peta Tematik Telah Dirubah. Silahkan Pilih Menu Tematik.');
 		    	},
 		    	error:function (xhr) {
@@ -244,7 +258,7 @@
 		    	// dataType : 'json',
 		    	beforeSend:function () {
 		      		console.log('sending');
-		      		$('#loading_tematik').show();
+		      		$('#loading_petajakarta').show();
 		    	},
 		    	success: function (data) {
 		    		console.log(data.QueryTime);
@@ -280,7 +294,7 @@
 		    	},
 		    	complete:function () {
 		      		console.log('send complete');
-		      		$('#loading_tematik').hide();
+		      		$('#loading_petajakarta').hide();
 				      	// $('#loading_tematik').show();
 				      	// alert('Peta Tematik Telah Dirubah. Silahkan Pilih Menu Tematik.');
 		    	},
@@ -307,13 +321,39 @@
 		    	// dataType : 'json',
 		    	beforeSend:function () {
 		      		console.log('sending');
-		      		$('#loading_tematik').show();
+		      		$('#loading_bpbd').show();
 		    	},
 		    	success: function (data) {
 		      		bpbd_layer = L.geoJson(data, {
-		        		style: style_kelurahan,
+		        		style: style_flood,
 		        		onEachFeature: function (feature, layer) {
-		        			layer.bindPopup(feature.properties.rw, popupOptions);
+		        			if ( feature.properties.flood_average > 0 ) {
+
+		        				var banjir = '';
+			        			if (feature.properties.banjir.length != 0) {
+			        				$.each(feature.properties.banjir, function () {
+			        				  	banjir += '<i class="fa fa-caret-right"></i> '+ this.KETINGGIAN +' cm ( '+ this.TANGGAL_KEJADIAN +' )<br>';
+			        				})
+			        			}
+
+			        			var popupContent = '<div class="row">' + 
+									'<div class="col-sm-12">' + 
+									'<table class="custom-table">' +
+									'<tr><td valign="top" width="90">Kota</td><td width="10" valign="top"> : </td><td>' + feature.properties.nama_kodya + '</td></tr>' +
+									'<tr><td valign="top" width="90">Kecamatan</td><td width="10" valign="top"> : </td><td>' + feature.properties.nama_kecamatan + '</td></tr>' +
+									'<tr><td valign="top" width="90">Kelurahan</td><td width="10" valign="top"> : </td><td>' + feature.properties.nama_kelurahan + '</td></tr>' +
+									'<tr><td valign="top" width="90">Average Depth</td><td width="10" valign="top"> : </td><td>' + feature.properties.flood_average + ' cm</td></tr>' +
+									'<tr><td valign="top" width="90">Max Depth</td><td width="10" valign="top"> : </td><td>' + feature.properties.flood_max + ' cm</td></tr>' +
+									'<tr><td valign="top" width="90">Laporan</td><td width="10" valign="top"> : </td><td>' + banjir + '</td></tr>' +
+									'</table>' +
+									
+			        			    '</div>' +
+									'</br>' +
+									'</div>';
+
+			          			layer.bindPopup(popupContent, popupOptions);
+
+		        			}
 		          			// Get bounds of polygon
 		          			var bounds = layer.getBounds();
 		          			// Get center of bounds
@@ -326,7 +366,7 @@
 		    	},
 		    	complete:function () {
 		      		console.log('send complete');
-		      		$('#loading_tematik').hide();
+		      		$('#loading_bpbd').hide();
 				      	// $('#loading_tematik').show();
 				      	// alert('Peta Tematik Telah Dirubah. Silahkan Pilih Menu Tematik.');
 		    	},

@@ -23,8 +23,7 @@ class Model_petugas extends CI_Model {
 
 	public function get_petugas_terdekat($lat, $long)
 	{
-		$this->db->select('*, 
-							SQRT( POW( 69.1 * ( lat - '.$lat.') , 2 ) + POW( 69.1 * ( '.$long.' - lng ) * COS( lat / 57.3 ) , 2 ) ) AS distance', false);
+		$this->db->select('*, SQRT( POW( 69.1 * ( lat - '.$lat.') , 2 ) + POW( 69.1 * ( '.$long.' - lng ) * COS( lat / 57.3 ) , 2 ) ) AS distance', false);
 		$this->db->from('roam_userpetugas');
 		$this->db->where('status', 0);
 		// $this->db->where('type', 'dinas');

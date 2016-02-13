@@ -66,6 +66,12 @@
 						<input type="checkbox" id="laporan_petajakarta"> Laporan Banjir PetaJakarta &nbsp;<i class="fa fa-spinner fa-spin" id="loading_petajakarta"></i>
 				    </label>
 				</div>
+				<hr>
+				<div class="checkbox">
+				    <label>
+						<input type="checkbox" id="petugas"> Petugas &nbsp;<i class="fa fa-spinner fa-spin" id="loading_petugas"></i>
+				    </label>
+				</div>
 			</div>
 		</div>
 	</div>
@@ -113,6 +119,11 @@
 		$('#loading_bpbd').ajaxStop(function () {
 		  $(this).show();
 		})
+
+		$('#loading_petugas').hide();
+		$('#loading_petugas').ajaxStop(function () {
+		  $(this).show();
+		})
 		/**
 		 * 
 		 *  Variables Initialization
@@ -123,6 +134,7 @@
 		var petajakarta_layer = null;
 		var bpbd_layer = null;
 		var petugas_layer = null;
+		var balitower_cctv_layer = null;
 
 		/**
 		 * 
@@ -153,7 +165,7 @@
 		};
 
 		var popupOptions = {
-		  maxWidth : '820',
+		  maxWidth : '520',
 		  minWidth : '250',
 		  className : 'custom',
 		  closeOnClick : true
@@ -162,6 +174,14 @@
 		var petugasIcon = L.ExtraMarkers.icon({
 		    icon: 'fa-user', 
 		    markerColor: 'blue-dark', 
+		    prefix: 'fa',
+		    iconColor: 'white',
+		    shape: 'square'
+		});
+
+		var cctvBalitowerIcon = L.ExtraMarkers.icon({
+		    icon: 'fa-video-camera', 
+		    markerColor: 'orange', 
 		    prefix: 'fa',
 		    iconColor: 'white',
 		    shape: 'square'
@@ -270,28 +290,36 @@
 		    	})
 		  	}
 
+		  	$('#petugas').prop('checked', true);
+
 			var url = root + 'index.php/petugas/terdekat?lat=' + y + '&long=' + x;
 			
 			$.ajax({
-			  type : "GET",
-			  async : false,
-			  global : false,
-			  url : url,
-			  dataType : 'json',
-			  success : function (data) {
-			    source = data;
-			    petugas_layer = L.geoJson(data, {
-			      	pointToLayer: function(feature, latlng) {
-			      		return L.marker(latlng, {
-							icon: petugasIcon
-						})
-			      	},
-			      	onEachFeature: function (feature, layer) {
-			     		var popupContent = '<div class="row">' + 
+			  	type : "GET",
+			  	async : false,
+			  	global : false,
+			  	url : url,
+			  	dataType : 'json',
+			  	beforeSend:function () {
+		      		console.log('sending');
+		      		$('#loading_petugas').show();
+		    	},
+			  	success : function (data) {
+			    	source = data;
+			    	petugas_layer = L.geoJson(data, {
+			      		pointToLayer: function(feature, latlng) {
+			      			return L.marker(latlng, {
+								icon: petugasIcon
+							})
+			      		},
+			      		onEachFeature: function (feature, layer) {
+			     			var popupContent = '<div class="row">' + 
 									'<div class="col-sm-12">' + 
 									'<h4>Detail Petugas</h4>' +
 									'<table class="custom-table">' +
 									'<tr><td valign="top" width="90">Nama Petugas</td><td width="10" valign="top"> : </td><td>' + feature.properties.nama + '</td></tr>' +
+									'<tr><td valign="top" width="90">Jabatan</td><td width="10" valign="top"> : </td><td>' + feature.properties.jabatan + '</td></tr>' +
+									'<tr><td valign="top" width="90">Dinas</td><td width="10" valign="top"> : </td><td>' + feature.properties.dinas + '</td></tr>' +
 									'<tr><td valign="top" width="90">Telepon</td><td width="10" valign="top"> : </td><td>' + feature.properties.phone + '</td></tr>' +
 									'<tr><td valign="top" width="90">Email</td><td width="10" valign="top"> : </td><td>' + feature.properties.email + '</td></tr>' +
 									'<tr><td valign="top" width="90">Login Terakhir</td><td width="10" valign="top"> : </td><td>' + feature.properties.login_terakhir + '</td></tr>' +
@@ -302,9 +330,76 @@
 									'</div>';
 
 			          			layer.bindPopup(popupContent, popupOptions);
+			      		}
+			    	});
+			    	petugas_layer.addTo(map);
+			  	},
+		    	complete:function () {
+		      		console.log('send complete');
+		      		$('#loading_petugas').hide();
+				      	// $('#loading_qlue').show();
+				      	// alert('Peta Tematik Telah Dirubah. Silahkan Pilih Menu Tematik.');
+		    	},
+		    	error:function (xhr) {
+		      		console.log(xhr.statusText + xhr.responseText);
+		      		$('#loading_petugas').hide();
+		      		// alert('Terjadi Kesalahan. Silahkan Periksa Koneksi Internet Anda.');
+		    	}
+			});
+		}
+
+		function get_balitower_cctv(x,y) {
+			if ( balitower_cctv_layer != undefined ){
+		    	map.removeLayer( balitower_cctv_layer );
+		  	}
+
+		  	if ( qlue_layer != undefined ){
+		    	qlue_layer.eachLayer(function(layer) {
+		    		layer.closePopup();
+		    	})
+		  	}
+
+		  	if ( bpbd_layer != undefined ){
+		    	bpbd_layer.eachLayer(function(layer) {
+		    		layer.closePopup();
+		    	})
+		  	}
+
+			var url = root + 'index.php/cctv/balitower_terdekat?lat=' + y + '&long=' + x;
+			
+			$.ajax({
+			  type : "GET",
+			  async : false,
+			  global : false,
+			  url : url,
+			  dataType : 'json',
+			  success : function (data) {
+			    source = data;
+			    balitower_cctv_layer = L.geoJson(data, {
+			      	pointToLayer: function(feature, latlng) {
+			      		return L.marker(latlng, {
+							icon: cctvBalitowerIcon
+						})
+			      	},
+			      	onEachFeature: function (feature, layer) {
+			     		var popupContent = '<div class="row">' + 
+									'<div class="col-sm-12">' + 
+									'<h4>CCTV ' + feature.properties.location + '</h4>' +
+									'<table class="custom-table">' +
+									'<tr><td valign="top" colspan="3"><center><iframe src="' + feature.properties.url + '"></iframe></center></td></tr>' +
+									'<tr><td valign="top" width="90">Site Name</td><td width="10" valign="top"> : </td><td>' + feature.properties.site_name + '</td></tr>' +
+									'<tr><td valign="top" width="90">Target View</td><td width="10" valign="top"> : </td><td>' + feature.properties.target_view + '</td></tr>' +
+									'<tr><td valign="top" width="90">Location</td><td width="10" valign="top"> : </td><td>' + feature.properties.location + '</td></tr>' +
+									'</table>' +
+									
+			        			    '</div>' +
+									'</br>' +
+									'</div>';
+
+			          			layer.bindPopup(popupContent, popupOptions);
 			      	}
 			    });
-			    petugas_layer.addTo(map);
+			    balitower_cctv_layer.addTo(map);
 			  }
 			});
 		}
@@ -318,6 +413,9 @@
 		  	}
 		  	if ( petugas_layer != undefined ){
 		    	map.removeLayer( petugas_layer );
+		  	}
+		  	if ( balitower_cctv_layer != undefined ){
+		    	map.removeLayer( balitower_cctv_layer );
 		  	}
 
 		  	var qlue_date_start 	= $('#qlue_date_start').val();
@@ -361,7 +459,8 @@
 									'<tr><td valign="top" width="90">Average Depth</td><td width="10" valign="top"> : </td><td>' + feature.properties.flood_average + ' cm</td></tr>' +
 									'<tr><td valign="top" width="90">Max Depth</td><td width="10" valign="top"> : </td><td>' + feature.properties.flood_max + ' cm</td></tr>' +
 									'<tr><td valign="top" width="90">State</td><td width="10" valign="top"> : </td><td>' + getState(feature.properties.state) + '</td></tr>' +
-									'<tr><td valign="top" width="90">State</td><td width="10" valign="top"> : </td><td><button class="btn btn-sm btn-success" onclick="get_petugas(' + feature.properties.x + ',' + feature.properties.y + ')">Cari Petugas</button></td></tr>' +
+									'<tr><td valign="top" width="90">Petugas</td><td width="10" valign="top"> : </td><td><button class="btn btn-sm btn-success" onclick="get_petugas(' + feature.properties.x + ',' + feature.properties.y + ')">Cari Petugas</button></td></tr>' +
+									'<tr><td valign="top" width="90">CCTV</td><td width="10" valign="top"> : </td><td><button class="btn btn-sm btn-success" onclick="get_balitower_cctv(' + feature.properties.x + ',' + feature.properties.y + ')">Cari CCTV Balitower</button></td></tr>' +
 									'<tr><td valign="top" width="90">Laporan</td><td width="10" valign="top"> : </td><td>' + banjir + '</td></tr>' +
 									'</table>' +
 									
@@ -404,6 +503,9 @@
 		  	}
 		  	if ( petugas_layer != undefined ){
 		    	map.removeLayer( petugas_layer );
+		  	}
+		  	if ( balitower_cctv_layer != undefined ){
+		    	map.removeLayer( balitower_cctv_layer );
 		  	}
 
 		  	$.ajax({
@@ -473,6 +575,9 @@
 		  	if ( petugas_layer != undefined ){
 		    	map.removeLayer( petugas_layer );
 		  	}
+		  	if ( balitower_cctv_layer != undefined ){
+		    	map.removeLayer( balitower_cctv_layer );
+		  	}
 
 		  	var bpbd_date_start 	= $('#bpbd_date_start').val();
 		  	var bpbd_date_end 		= $('#bpbd_date_end').val();
@@ -517,7 +622,8 @@
 									'<tr><td valign="top" width="90">RW</td><td width="10" valign="top"> : </td><td>' + feature.properties.rw + '</td></tr>' +
 									'<tr><td valign="top" width="90">Average Depth</td><td width="10" valign="top"> : </td><td>' + feature.properties.flood_average + ' cm</td></tr>' +
 									'<tr><td valign="top" width="90">Max Depth</td><td width="10" valign="top"> : </td><td>' + feature.properties.flood_max + ' cm</td></tr>' +
-									'<tr><td valign="top" width="90">State</td><td width="10" valign="top"> : </td><td><button class="btn btn-sm btn-success" onclick="get_petugas(' + feature.properties.x + ',' + feature.properties.y + ')">Cari Petugas</button></td></tr>' +
+									'<tr><td valign="top" width="90">Petugas</td><td width="10" valign="top"> : </td><td><button class="btn btn-sm btn-success" onclick="get_petugas(' + feature.properties.x + ',' + feature.properties.y + ')">Cari Petugas</button></td></tr>' +
+									'<tr><td valign="top" width="90">CCTV</td><td width="10" valign="top"> : </td><td><button class="btn btn-sm btn-success" onclick="get_balitower_cctv(' + feature.properties.x + ',' + feature.properties.y + ')">Cari CCTV Balitower</button></td></tr>' +
 									'<tr><td valign="top" width="90">Laporan</td><td width="10" valign="top"> : </td><td>' + banjir + '</td></tr>' +
 									'</table>' +
 									
@@ -626,6 +732,9 @@
 		        if ( petugas_layer != undefined ){
 			    	map.removeLayer( petugas_layer );
 			  	}
+			  	if ( balitower_cctv_layer != undefined ){
+			    	map.removeLayer( balitower_cctv_layer );
+			  	}
 		        $('#refresh_qlue').hide();
 		    }
 		})
@@ -659,7 +768,25 @@
 		        if ( petugas_layer != undefined ){
 			    	map.removeLayer( petugas_layer );
 			  	}
+
+			  	if ( balitower_cctv_layer != undefined ){
+			    	map.removeLayer( balitower_cctv_layer );
+			  	}
 		        $('#refresh_bpbd').hide();
+		    }
+		})
+
+		$('#petugas').change(function () {
+		    check = $("#petugas").prop("checked");
+		    // checked
+		    if( check ) {
+		        $('#petugas').show();
+		    } 
+		    // unchecked
+		    else {
+		        if ( petugas_layer != undefined ){
+			    	map.removeLayer( petugas_layer );
+			  	}
 		    }
 		})
 

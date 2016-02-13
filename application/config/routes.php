@@ -38,10 +38,11 @@
 |
 */
 
-$route['default_controller'] = "flood/index";
-$route['404_override'] = '';
+$route['default_controller'] 	= "flood/index";
+$route['404_override'] 			= '';
 
-$route['geo/qlue'] = "flood/geo_qlue";
-$route['geo/bpbd'] = "flood/geo_bpbd";
+$route['geo/qlue'] 				= "flood/geo_qlue";
+$route['geo/bpbd'] 				= "flood/geo_bpbd";
+$route['geo/petajakarta'] 		= "flood/geo_petajakarta";
 /* End of file routes.php */
 /* Location: ./application/config/routes.php */

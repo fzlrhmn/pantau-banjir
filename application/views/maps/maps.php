@@ -169,40 +169,56 @@
 		}
 
 		function getColor(d) {
-		    return d > 100  ? '#045a8d' :
-		           d > 70   ? '#2b8cbe' :
-		           d > 30   ? '#74a9cf' :
-		           d > 10   ? '#bdc9e1' :
+		    return d >= 150  ? '#CC2A41' :
+		           d >= 70   ? '#FF8300' :
+		           d >= 10   ? '#FFFF00' :
+		           d < 10   ? '#A0A9F7' :
 		                      '#ffffff';
 		}
 
 		function getOpacity(d) {
-		    return d > 100  ? '0.6' :
-		           d > 70   ? '0.6' :
-		           d > 30   ? '0.6' :
-		           d > 10   ? '0.6' :
-		                      '0';
+		    return d > 100  ? '0.8' :
+		           d > 70   ? '0.8' :
+		           d > 30   ? '0.8' :
+		           d > 10   ? '0.8' :
+		                      '0.8';
 		}
 
 		function getPetaJakartaColor(d) {
-		    return d > 3  ? '#CC2A41' :
-		           d > 2   ? '#FF8300' :
-		           d > 1   ? '#FFFF00' :
-		           d > 0   ? '#A0A9F7' :
-		                      '#ffffff';
+			var color = null;
+
+			if( d == 1 ){
+				color = '#A0A9F7';
+			}
+			else if( d == 2 ){
+				color = '#FFFF00';
+			}
+
+			else if( d == 3 ){
+				color = '#FF8300';
+			}
+
+			else if ( d == 4 ){
+				color = '#CC2A41';
+			}
+			else if ( d == 0) {
+				color = 'transparent';
+			}
+			
+			return color;
 		}
 
 		function getPetaJakartaOpacity(d) {
-		    return d > 3  ? '0.6' :
-		           d > 2   ? '0.6' :
-		           d > 1   ? '0.6' :
-		           d > 0   ? '0.6' :
+		    return d > 3  ? '0.8' :
+		           d > 2   ? '0.8' :
+		           d > 1   ? '0.8' :
+		           d > 0   ? '0.8' :
 		                      '0';
 		}
 
 		function style_flood(feature) {
 		    return {
-		        fillColor: getColor(feature.properties.flood_average),
+		        fillColor: getPetaJakartaColor(feature.properties.state),
 		        weight: 1,
 		        opacity: 1,
 		        color: getLineColor(feature.properties.flood_average),
@@ -215,7 +231,7 @@
 		        fillColor: getPetaJakartaColor(feature.properties.state),
 		        weight: 1,
 		        opacity: 1,
-		        color: getLineColor(feature.properties.flood_average),
+		        color: getLineColor(feature.properties.state),
 		        fillOpacity: getPetaJakartaOpacity(feature.properties.state)
 		    };
 		}
@@ -276,6 +292,7 @@
 									'<tr><td valign="top" width="90">Kelurahan</td><td width="10" valign="top"> : </td><td>' + feature.properties.nama_kelurahan + '</td></tr>' +
 									'<tr><td valign="top" width="90">Average Depth</td><td width="10" valign="top"> : </td><td>' + feature.properties.flood_average + ' cm</td></tr>' +
 									'<tr><td valign="top" width="90">Max Depth</td><td width="10" valign="top"> : </td><td>' + feature.properties.flood_max + ' cm</td></tr>' +
+									'<tr><td valign="top" width="90">State</td><td width="10" valign="top"> : </td><td>' + getState(feature.properties.state) + '</td></tr>' +
 									'<tr><td valign="top" width="90">Laporan</td><td width="10" valign="top"> : </td><td>' + banjir + '</td></tr>' +
 									'</table>' +
 									
@@ -321,7 +338,7 @@
 		    	type : "GET",
 		    	async : true,
 		    	global : false,
-		    	url : "https://rem.petajakarta.org/banjir/data/api/v2/rem/flooded",
+		    	url : root + 'index.php/geo/petajakarta',
 		    	// dataType : 'json',
 		    	beforeSend:function () {
 		      		console.log('sending');
@@ -343,6 +360,7 @@
 									'<tr><td valign="top" width="90">RW</td><td width="10" valign="top"> : </td><td>' + feature.properties.level_name + '</td></tr>' +
 									'<tr><td valign="top" width="90">Kelurahan</td><td width="10" valign="top"> : </td><td>' + feature.properties.parent_name + '</td></tr>' +
 									'<tr><td valign="top" width="90">State</td><td width="10" valign="top"> : </td><td>' + getState(feature.properties.state) + '</td></tr>' +
+									'<tr><td valign="top" width="90">Tanggal</td><td width="10" valign="top"> : </td><td>' + date + ' ' + time + '</td></tr>' +
 									'</table>' +
 									
 			        			    '</div>' +
@@ -475,10 +493,7 @@
 		                          id: 'mapbox.streets'
 		                        });
 
-		map.addLayer(google_roadmap);
-
-		// set_petajakarta_layer();
-		// set_kelurahan_layer();
+		map.addLayer(osm);
 
 		var baseLayers = {
 		  "Google Roadmap": google_roadmap,
@@ -501,8 +516,8 @@
 
 		legend.onAdd = function (map) {
 		  var div = L.DomUtil.create('div', 'info-legend'),
-		  warna_total = ['#ffffff' , '#bdc9e1', '#74a9cf', '#2b8cbe', '#045a8d'];
-		  labels = ['0 - 10 cm', '10 - 30 cm', '30 - 70 cm', '70 - 100 cm', '> 100 cm'];
+		  warna_total = ['#ffffff' , '#A0A9F7', '#FFFF00', '#FF8300', '#CC2A41'];
+		  labels = ['No Flood', 'Use Caution', '10 - 70 Cm', '70 - 150 cm', '> 150 cm'];
 		  // loop through our density intervals and generate a label with a colored square for each interval
 		  for (var i = 0; i < warna_total.length; i++) {
 		    div.innerHTML += '<i style="background:' + warna_total[i] + '"></i> ' + labels[i] + '<br>';

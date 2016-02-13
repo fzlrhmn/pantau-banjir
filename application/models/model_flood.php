@@ -49,6 +49,48 @@ class Model_flood extends CI_Model {
 		return $flood_district;
 	}
 
+	public function get_state($average_flood)
+	{
+		$state = null;
+		if ( $average_flood == 0 ) {
+			$state = 0;
+		}
+		elseif ( $average_flood > 0 && $average_flood < 10 ) {
+			$state = 1;
+		} 
+		elseif ( $average_flood >= 10 && $average_flood < 70 ) {
+			$state = 2;
+		}
+		elseif ( $average_flood >= 70 && $average_flood < 150 ) {
+			$state = 3;
+		}
+		elseif ( $average_flood >= 150 ) {
+			$state = 4;
+		}
+		return $state;
+	}
+
+	public function get_state_color($average_flood)
+	{
+		$state = null;
+		if ( $average_flood > 0 && $average_flood < 10 ) {
+			$state = '#A0A9F7';
+		} 
+		elseif ( $average_flood >= 10 && $average_flood < 70 ) {
+			$state = '#FFFF00';
+		}
+		elseif ( $average_flood >= 70 && $average_flood < 150 ) {
+			$state = '#FF8300';
+		}
+		elseif ( $average_flood >= 150 ) {
+			$state = '#CC2A41';
+		}
+		else {
+			$state = '#ffffff';
+		}
+		return $state;
+	}
+
 	public function get_flood_average($flood_array)
 	{
 		if (count($flood_array) != 0) {
@@ -158,11 +200,13 @@ class Model_flood extends CI_Model {
 		$bpbd_date_start 	= str_replace('-', '', $this->input->get('datestart'));
 		$bpbd_date_end 		= str_replace('-', '', $this->input->get('dateend'));
 
-		try {
-			$data = $this->curl->simple_get('http://bpbd.jakarta.go.id/cgi-bin/flr?fromTime='.$bpbd_date_start.'0000&toTime='.$bpbd_date_end.'2359');	
-		} catch (Exception $e) {
-			$data = $e->getMessage();
-		}
+		$data = $this->curl->simple_get('http://bpbd.jakarta.go.id/cgi-bin/flr?fromTime='.$bpbd_date_start.'0000&toTime='.$bpbd_date_end.'2359');
+		return json_decode($data);
+	}
+
+	public function get_petajakarta_json()
+	{
+		$data = $this->curl->simple_get('https://rem.petajakarta.org/banjir/data/api/v2/rem/flooded');
 		return json_decode($data);
 	}
 }

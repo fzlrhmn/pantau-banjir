@@ -46,7 +46,8 @@ class Flood extends CI_Controller {
 			$data_banjir 					= $this->model_kelurahan->get_flood_kelurahan($data['report_qlue'], $item['nama_kelurahan']);
 			$properties['flood_average']	= $this->model_flood->get_flood_average($data_banjir);
 			$properties['flood_max']		= $this->model_flood->get_flood_max($data_banjir);
-			$properties['flood_color']		= $this->model_flood->get_flood_color($properties['flood_average']);
+			$properties['state']			= $this->model_flood->get_state($properties['flood_average']);
+			$properties['state_color']		= $this->model_flood->get_state_color($properties['flood_average']);
 			$properties['banjir']			= $data_banjir;
 			unset($properties['wkb']);
 
@@ -84,6 +85,8 @@ class Flood extends CI_Controller {
 			$data_banjir 					= $this->model_flood->get_flood_bpbd($reports->reports, $item['id']);
 			$properties['flood_average']	= $this->model_flood->get_bpbd_flood_average($data_banjir);
 			$properties['flood_max']		= $this->model_flood->get_bpbd_flood_max($data_banjir);
+			$properties['state']			= $this->model_flood->get_state($properties['flood_average']);
+			$properties['state_color']		= $this->model_flood->get_state_color($properties['flood_average']);
 			$properties['banjir']			= $data_banjir;
 
 			unset($properties['wkb']);
@@ -96,6 +99,26 @@ class Flood extends CI_Controller {
 		    # Add feature arrays to feature collection array
 		    array_push($geojson['features'], $feature);
 		}
+		$this->output->set_content_type('application/json')->set_output(json_encode($geojson));
+	}
+
+	public function geo_petajakarta()
+	{
+		$data = $this->model_flood->get_petajakarta_json();
+
+		$features_array = array();
+		for ($i=0; $i < count($data->features); $i++) { 
+			if ( $data->features[$i]->properties->state != 0 ) {
+				array_push($features_array, $data->features[$i]);
+			}
+		}
+
+		$geojson = array(
+		   'QueryTime'	=> $data->QueryTime,
+		   'type'      	=> 'FeatureCollection',
+		   'features'  	=> $features_array
+		);
+
 		$this->output->set_content_type('application/json')->set_output(json_encode($geojson));
 	}
 }

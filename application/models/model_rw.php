@@ -10,7 +10,10 @@ class Model_rw extends CI_Model {
 
 	public function get_rw_geo($where_array = false)
 	{
-		$this->db->select('	asWkb(app_rw_jakarta.SHAPE) as wkb,  
+		$this->db->select('	asWkb(app_rw_jakarta.SHAPE) as wkb,
+							asText(centroid(app_rw_jakarta.SHAPE)) as center_point,
+							x(centroid(app_rw_jakarta.SHAPE)) as x,
+							y(centroid(app_rw_jakarta.SHAPE)) as y,
 							app_rw_jakarta.kab_name as nama_kodya,
 							app_rw_jakarta.kec_name as nama_kecamatan,
 							app_rw_jakarta.kel_name as nama_kelurahan, 

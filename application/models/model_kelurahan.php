@@ -10,7 +10,10 @@ class Model_kelurahan extends CI_Model {
 
 	public function get_kelurahan_geo($where_array = false)
 	{
-		$this->db->select('	asWkb(app_border_kelurahan.SHAPE) as wkb,  
+		$this->db->select('	asWkb(app_border_kelurahan.SHAPE) as wkb,
+							asText(centroid(app_border_kelurahan.SHAPE)) as center_point,
+							x(centroid(app_border_kelurahan.SHAPE)) as x,
+							y(centroid(app_border_kelurahan.SHAPE)) as y,
 							app_border_kelurahan.name as nama_kelurahan, 
 							app_border_kelurahan.OGR_FID');
 		$this->db->from('app_border_kelurahan');

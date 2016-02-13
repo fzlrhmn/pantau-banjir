@@ -72,6 +72,12 @@
 						<input type="checkbox" id="petugas"> Petugas &nbsp;<i class="fa fa-spinner fa-spin" id="loading_petugas"></i>
 				    </label>
 				</div>
+				<hr>
+				<div class="checkbox">
+				    <label>
+						<input type="checkbox" id="cctv_balitower"> CCTV balitower &nbsp;<i class="fa fa-spinner fa-spin" id="loading_balitower"></i>
+				    </label>
+				</div>
 			</div>
 		</div>
 	</div>
@@ -122,6 +128,11 @@
 
 		$('#loading_petugas').hide();
 		$('#loading_petugas').ajaxStop(function () {
+		  $(this).show();
+		})
+
+		$('#loading_balitower').hide();
+		$('#loading_balitower').ajaxStop(function () {
 		  $(this).show();
 		})
 		/**
@@ -177,6 +188,14 @@
 		    prefix: 'fa',
 		    iconColor: 'white',
 		    shape: 'square'
+		});
+
+		var petugasEselonIcon = L.ExtraMarkers.icon({
+		    icon: 'fa-user-secret', 
+		    markerColor: 'red', 
+		    prefix: 'fa',
+		    iconColor: 'white',
+		    shape: 'circle'
 		});
 
 		var cctvBalitowerIcon = L.ExtraMarkers.icon({
@@ -296,7 +315,7 @@
 			
 			$.ajax({
 			  	type : "GET",
-			  	async : false,
+			  	async : true,
 			  	global : false,
 			  	url : url,
 			  	dataType : 'json',
@@ -308,9 +327,16 @@
 			    	source = data;
 			    	petugas_layer = L.geoJson(data, {
 			      		pointToLayer: function(feature, latlng) {
-			      			return L.marker(latlng, {
-								icon: petugasIcon
-							})
+			      			if (feature.properties.jabatan == 'Lurah') {
+			      				return L.marker(latlng, {
+									icon: petugasEselonIcon
+								})
+			      			}else{
+			      				return L.marker(latlng, {
+									icon: petugasIcon
+								})
+			      			}
+			      			
 			      		},
 			      		onEachFeature: function (feature, layer) {
 			     			var popupContent = '<div class="row">' + 
@@ -365,24 +391,30 @@
 		    	})
 		  	}
 
+		  	$('#cctv_balitower').prop('checked', true);
+
 			var url = root + 'index.php/cctv/balitower_terdekat?lat=' + y + '&long=' + x;
 			
 			$.ajax({
-			  type : "GET",
-			  async : false,
-			  global : false,
-			  url : url,
-			  dataType : 'json',
-			  success : function (data) {
-			    source = data;
-			    balitower_cctv_layer = L.geoJson(data, {
-			      	pointToLayer: function(feature, latlng) {
-			      		return L.marker(latlng, {
-							icon: cctvBalitowerIcon
-						})
-			      	},
-			      	onEachFeature: function (feature, layer) {
-			     		var popupContent = '<div class="row">' + 
+			  	type : "GET",
+			  	async : true,
+			  	global : false,
+			  	url : url,
+			  	dataType : 'json',
+			  	beforeSend:function () {
+		      		console.log('sending');
+		      		$('#loading_balitower').show();
+		    	},
+			  	success : function (data) {
+			    	source = data;
+			    	balitower_cctv_layer = L.geoJson(data, {
+			      		pointToLayer: function(feature, latlng) {
+			      			return L.marker(latlng, {
+								icon: cctvBalitowerIcon
+							})
+			      		},
+			      		onEachFeature: function (feature, layer) {
+			     			var popupContent = '<div class="row">' + 
 									'<div class="col-sm-12">' + 
 									'<h4>CCTV ' + feature.properties.location + '</h4>' +
 									'<table class="custom-table">' +
@@ -397,10 +429,21 @@
 									'</div>';
 
 			          			layer.bindPopup(popupContent, popupOptions);
-			      	}
-			    });
-			    balitower_cctv_layer.addTo(map);
-			  }
+			      		}
+			    	});
+			    	balitower_cctv_layer.addTo(map);
+			  	},
+		    	complete:function () {
+		      		console.log('send complete');
+		      		$('#loading_balitower').hide();
+				      	// $('#loading_qlue').show();
+				      	// alert('Peta Tematik Telah Dirubah. Silahkan Pilih Menu Tematik.');
+		    	},
+		    	error:function (xhr) {
+		      		console.log(xhr.statusText + xhr.responseText);
+		      		$('#loading_balitower').hide();
+		      		// alert('Terjadi Kesalahan. Silahkan Periksa Koneksi Internet Anda.');
+		    	}
 			});
 		}
 
@@ -786,6 +829,20 @@
 		    else {
 		        if ( petugas_layer != undefined ){
 			    	map.removeLayer( petugas_layer );
+			  	}
+		    }
+		})
+
+		$('#cctv_balitower').change(function () {
+		    check = $("#cctv_balitower").prop("checked");
+		    // checked
+		    if( check ) {
+		        $('#cctv_balitower').show();
+		    } 
+		    // unchecked
+		    else {
+		        if ( balitower_cctv_layer != undefined ){
+			    	map.removeLayer( balitower_cctv_layer );
 			  	}
 		    }
 		})

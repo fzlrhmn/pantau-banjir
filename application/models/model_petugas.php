@@ -26,7 +26,7 @@ class Model_petugas extends CI_Model {
 		$this->db->select('*, SQRT( POW( 69.1 * ( lat - '.$lat.') , 2 ) + POW( 69.1 * ( '.$long.' - lng ) * COS( lat / 57.3 ) , 2 ) ) AS distance', false);
 		$this->db->from('roam_userpetugas');
 		$this->db->where('status', 0);
-		// $this->db->where('type', 'dinas');
+		// $this->db->where('type', 'kelurahan');
 		$this->db->where('lat != ', '0.000000');
 		$this->db->where('lng != ', '0.000000');
 		$this->db->order_by('distance', 'ASC');

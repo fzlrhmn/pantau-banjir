@@ -8,6 +8,9 @@
     <link rel="stylesheet" href="<?php echo base_url(); ?>assets/css/leaflet-routing-machine.css" />
     <link rel="stylesheet" href="<?php echo base_url(); ?>assets/css/leaflet.extra-markers.css" />
     <link href="<?php echo base_url(); ?>assets/css/leaflet.css" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.6.0/css/bootstrap-datepicker3.css">
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.6.0/css/bootstrap-datepicker3.css.map">
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.6.0/css/bootstrap-datepicker3.standalone.css">
     <script src="http://maps.google.com/maps/api/js?v=3.2&sensor=false"></script>
 
     <script src="<?php echo base_url(); ?>assets/js/leaflet.js"></script>
@@ -27,14 +30,40 @@
 						<input type="checkbox" id="laporan_qlue"> Laporan Banjir QLUE &nbsp;<i class="fa fa-spinner fa-spin" id="loading_qlue"></i>
 				    </label>
 				</div>
-				<div class="checkbox">
-				    <label>
-						<input type="checkbox" id="laporan_petajakarta"> Laporan Banjir PetaJakarta &nbsp;<i class="fa fa-spinner fa-spin" id="loading_petajakarta"></i>
-				    </label>
+				<div class="row">
+					<div class="col-xs-10">
+						<div class="input-daterange input-group" id="datepicker">
+						    <input type="text" class="input-sm form-control" id="qlue_date_start" />
+						    <span class="input-group-addon">to</span>
+						    <input type="text" class="input-sm form-control" id="qlue_date_end" />						    
+						</div>
+					</div>
+					<div class="col-xs-1">
+						<button class="btn btn-sm btn-success" id="refresh_qlue"><i class="fa fa-refresh" ></i></button>
+					</div>
 				</div>
+				<hr>
 				<div class="checkbox">
 				    <label>
 						<input type="checkbox" id="laporan_bpbd"> Laporan Banjir BPBD &nbsp;<i class="fa fa-spinner fa-spin" id="loading_bpbd"></i>
+				    </label>
+				</div>
+				<div class="row">
+					<div class="col-xs-10">
+						<div class="input-daterange input-group" id="datepicker">
+						    <input type="text" class="input-sm form-control" id="bpbd_date_start" />
+						    <span class="input-group-addon">to</span>
+						    <input type="text" class="input-sm form-control" id="bpbd_date_end" />						    
+						</div>
+					</div>
+					<div class="col-xs-1">
+						<button class="btn btn-sm btn-success" id="refresh_bpbd"><i class="fa fa-refresh" ></i></button>
+					</div>
+				</div>
+				<hr>
+				<div class="checkbox">
+				    <label>
+						<input type="checkbox" id="laporan_petajakarta"> Laporan Banjir PetaJakarta &nbsp;<i class="fa fa-spinner fa-spin" id="loading_petajakarta"></i>
 				    </label>
 				</div>
 			</div>
@@ -42,7 +71,34 @@
 	</div>
     <script src="<?php echo base_url('/bower_components/jquery/dist/jquery.min.js'); ?>"></script>
     <script src="<?php echo base_url('/bower_components/bootstrap/dist/js/bootstrap.min.js'); ?>"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.6.0/js/bootstrap-datepicker.js"></script>
 	<script type="text/javascript">
+		var d = new Date();
+
+		var currDate = d.getDate();
+		var currMonth = d.getMonth()+1;
+		var currYear = d.getFullYear();
+
+		if (currMonth < 10) {
+			currMonth = '0' + currMonth;
+		}
+
+		var dateStr = currYear + "-" + currMonth + "-" + currDate;
+
+		$('.input-daterange').datepicker({
+		    format: "yyyy-mm-dd",
+		    autoclose : true
+		});
+
+		$('#qlue_date_start').val(dateStr);
+		$('#qlue_date_end').val(dateStr);
+
+		$('#bpbd_date_start').val(dateStr);
+		$('#bpbd_date_end').val(dateStr);
+
+		$('#refresh_qlue').hide();
+		$('#refresh_bpbd').hide();
+
 		$('#loading_qlue').hide();
 		$('#loading_qlue').ajaxStop(function () {
 		  $(this).show();
@@ -180,11 +236,21 @@
 		    	map.removeLayer( kelurahan_layer );
 		  	}
 
+		  	var qlue_date_start 	= $('#qlue_date_start').val();
+		  	var qlue_date_end 		= $('#qlue_date_end').val();
+
+		  	if ( qlue_date_start != '' && qlue_date_end != '') {
+		  		var url = root + '/index.php/geo/qlue?datestart=' + qlue_date_start + '&dateend=' + qlue_date_end;
+		  	}
+		  	else{
+		  		var url = root + "index.php/geo/qlue";
+		  	}
+
 		  	$.ajax({
 		    	type : "GET",
 		    	async : true,
 		    	global : false,
-		    	url : root + "index.php/geo/qlue",
+		    	url : url,
 		    	// dataType : 'json',
 		    	beforeSend:function () {
 		      		console.log('sending');
@@ -205,6 +271,7 @@
 
 			        			var popupContent = '<div class="row">' + 
 									'<div class="col-sm-12">' + 
+									'<h4>Laporan Qlue</h4>' +
 									'<table class="custom-table">' +
 									'<tr><td valign="top" width="90">Kelurahan</td><td width="10" valign="top"> : </td><td>' + feature.properties.nama_kelurahan + '</td></tr>' +
 									'<tr><td valign="top" width="90">Average Depth</td><td width="10" valign="top"> : </td><td>' + feature.properties.flood_average + ' cm</td></tr>' +
@@ -271,6 +338,7 @@
 		        			if (feature.properties.state > 0) {
 		        				var popupContent = '<div class="row">' + 
 									'<div class="col-sm-12">' + 
+									'<h4>Laporan PetaJakarta</h4>' +
 									'<table class="custom-table">' +
 									'<tr><td valign="top" width="90">RW</td><td width="10" valign="top"> : </td><td>' + feature.properties.level_name + '</td></tr>' +
 									'<tr><td valign="top" width="90">Kelurahan</td><td width="10" valign="top"> : </td><td>' + feature.properties.parent_name + '</td></tr>' +
@@ -313,11 +381,21 @@
 		    	map.removeLayer( bpbd_layer );
 		  	}
 
+		  	var bpbd_date_start 	= $('#bpbd_date_start').val();
+		  	var bpbd_date_end 		= $('#bpbd_date_end').val();
+
+		  	if ( bpbd_date_start != '' && bpbd_date_end != '') {
+		  		var url = root + 'index.php/geo/bpbd?datestart=' + bpbd_date_start + '&dateend=' + bpbd_date_end;
+		  	}
+		  	else{
+		  		var url = root + "index.php/geo/bpbd";
+		  	}
+
 		  	$.ajax({
 		    	type : "GET",
 		    	async : true,
 		    	global : false,
-		    	url : root + "index.php/geo/bpbd",
+		    	url : url,
 		    	// dataType : 'json',
 		    	beforeSend:function () {
 		      		console.log('sending');
@@ -338,10 +416,12 @@
 
 			        			var popupContent = '<div class="row">' + 
 									'<div class="col-sm-12">' + 
+									'<h4>Laporan BPBD</h4>' +
 									'<table class="custom-table">' +
 									'<tr><td valign="top" width="90">Kota</td><td width="10" valign="top"> : </td><td>' + feature.properties.nama_kodya + '</td></tr>' +
 									'<tr><td valign="top" width="90">Kecamatan</td><td width="10" valign="top"> : </td><td>' + feature.properties.nama_kecamatan + '</td></tr>' +
 									'<tr><td valign="top" width="90">Kelurahan</td><td width="10" valign="top"> : </td><td>' + feature.properties.nama_kelurahan + '</td></tr>' +
+									'<tr><td valign="top" width="90">RW</td><td width="10" valign="top"> : </td><td>' + feature.properties.rw + '</td></tr>' +
 									'<tr><td valign="top" width="90">Average Depth</td><td width="10" valign="top"> : </td><td>' + feature.properties.flood_average + ' cm</td></tr>' +
 									'<tr><td valign="top" width="90">Max Depth</td><td width="10" valign="top"> : </td><td>' + feature.properties.flood_max + ' cm</td></tr>' +
 									'<tr><td valign="top" width="90">Laporan</td><td width="10" valign="top"> : </td><td>' + banjir + '</td></tr>' +
@@ -445,12 +525,14 @@
 		    // checked
 		    if( check ) {
 		        set_kelurahan_layer();
+		        $('#refresh_qlue').show();
 		    } 
 		    // unchecked
 		    else {
 		        if (kelurahan_layer != undefined) {
 		            map.removeLayer(kelurahan_layer);
 		        };
+		        $('#refresh_qlue').hide();
 		    }
 		})
 
@@ -473,13 +555,25 @@
 		    // checked
 		    if( check ) {
 		        set_bpbd_layer();
+		        $('#refresh_bpbd').show();
 		    } 
 		    // unchecked
 		    else {
 		        if (bpbd_layer != undefined) {
 		            map.removeLayer(bpbd_layer);
 		        };
+		        $('#refresh_bpbd').hide();
 		    }
+		})
+
+		$('#refresh_qlue').click(function(e) {
+			e.preventDefault();
+			set_kelurahan_layer();
+		})
+
+		$('#refresh_bpbd').click(function(e) {
+			e.preventDefault();
+			set_bpbd_layer();
 		})
 	</script>
 </body>

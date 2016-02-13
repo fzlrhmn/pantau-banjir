@@ -8,6 +8,47 @@ class Model_flood extends CI_Model {
 		// $this->db->insert_batch('alerts', $data);
 	}
 
+	public function dateFilter($array_report, $dateStart = false, $dateEnd = false)
+	{
+		if ( count($array_report) != 0 ) {
+			$flood_array = array();
+			for ($i=0; $i < count($array_report); $i++) { 
+				if ( $dateStart != false ) {
+					if ( ($array_report[$i]['date'] >= $dateStart) && ($array_report[$i]['date'] <= $dateEnd) ) {
+						array_push($flood_array, $array_report[$i]);
+					}
+				}
+			}
+		}
+
+		return $flood_array;
+	}
+
+	public function get_value_qlue_flood($array_report)
+	{
+		$flood_array = array();
+		for ($i=0; $i < count($array_report); $i++) { 
+			array_push($flood_array, $array_report[$i]['kelurahan']);
+		}
+		return $flood_array;
+	}
+
+	public function get_value_bpbd_flood($flood_array)
+	{
+		if (count($flood_array) != 0) {
+			$flood_district = array();
+			for ($i=0; $i < count($flood_array); $i++) { 
+				if ( $flood_array[$i]->KETINGGIAN != 0 ) {
+					array_push($flood_district, $flood_array[$i]->ID_DISTRIK);
+				}
+			}
+		}
+		else{
+			$flood_district = 0;
+		}
+		return $flood_district;
+	}
+
 	public function get_flood_average($flood_array)
 	{
 		if (count($flood_array) != 0) {
@@ -114,7 +155,14 @@ class Model_flood extends CI_Model {
 
 	public function get_bpbd_json()
 	{
-		$data = $this->curl->simple_get('http://bpbd.jakarta.go.id/cgi-bin/flr?fromTime=201602110000&toTime=201602112359');
+		$bpbd_date_start 	= str_replace('-', '', $this->input->get('datestart'));
+		$bpbd_date_end 		= str_replace('-', '', $this->input->get('dateend'));
+
+		try {
+			$data = $this->curl->simple_get('http://bpbd.jakarta.go.id/cgi-bin/flr?fromTime='.$bpbd_date_start.'0000&toTime='.$bpbd_date_end.'2359');	
+		} catch (Exception $e) {
+			$data = $e->getMessage();
+		}
 		return json_decode($data);
 	}
 }

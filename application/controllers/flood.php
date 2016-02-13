@@ -25,14 +25,21 @@ class Flood extends CI_Controller {
 	{
 		$qlue_feed = "https://docs.google.com/spreadsheets/d/1ZOdy3j2FVkhLBMI_aDKoU3BV5qurI6hsPKHZHNmzoNA/pub?gid=0&single=true&output=csv";
 		
+		$qlue_date_start 	= str_replace('', '', $this->input->get('datestart'));
+		$qlue_date_end 		= str_replace('', '', $this->input->get('dateend'));
 		# Build GeoJSON feature collection array
 		$geojson = array(
+			'datestart' => $qlue_date_start,
+			'dateend' => $qlue_date_end,
 		   'type'      => 'FeatureCollection',
 		   'features'  => array()
 		);
 
-		$data['kelurahan'] 		= $this->model_kelurahan->get_kelurahan_geo();
-		$data['report_qlue'] 	= $this->csvtojson->csv_to_json($qlue_feed);
+		$qlue_json 				= $this->csvtojson->csv_to_json($qlue_feed);
+		$data['report_qlue']	= $this->model_flood->dateFilter($qlue_json, $qlue_date_start, $qlue_date_end);
+		$get_kelurahan			= $this->model_flood->get_value_qlue_flood($data['report_qlue']);
+		$unique_kelurahan		= array_unique($get_kelurahan);
+		$data['kelurahan'] 		= $this->model_kelurahan->get_kelurahan_geo($unique_kelurahan);
 
 		foreach ($data['kelurahan'] as $item) {
 			$properties = $item;
@@ -57,7 +64,7 @@ class Flood extends CI_Controller {
 	/*
 	 Routes : geo/bpbd
 	 */
-	public function geo_bpbd($fromTime = false, $toTime = false)
+	public function geo_bpbd()
 	{
 		# Build GeoJSON feature collection array
 		$geojson = array(
@@ -65,8 +72,12 @@ class Flood extends CI_Controller {
 		   'features'  => array()
 		);
 
-		$data['rw'] 	= $this->model_rw->get_rw_geo();
 		$reports 		= $this->model_flood->get_bpbd_json();
+		
+		// get only affected areas
+		$get_rw			= $this->model_flood->get_value_bpbd_flood($reports->reports);
+		$unique_rw		= array_unique($get_rw);
+		$data['rw'] 	= $this->model_rw->get_rw_geo($unique_rw);
 
 		foreach ($data['rw'] as $item) {
 			$properties = $item;

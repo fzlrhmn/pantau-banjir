@@ -8,7 +8,7 @@ class Model_rw extends CI_Model {
 		$this->load->database();
 	}
 
-	public function get_rw_geo()
+	public function get_rw_geo($where_array = false)
 	{
 		$this->db->select('	asWkb(app_rw_jakarta.SHAPE) as wkb,  
 							app_rw_jakarta.kab_name as nama_kodya,
@@ -17,6 +17,9 @@ class Model_rw extends CI_Model {
 							app_rw_jakarta.rw as rw, 
 							app_rw_jakarta.id');
 		$this->db->from('app_rw_jakarta');
+		if ($where_array != false) {
+			$this->db->where_in('id', $where_array);
+		}
 		$query = $this->db->get();
 		$result = $query->result_array();
 		return $result;

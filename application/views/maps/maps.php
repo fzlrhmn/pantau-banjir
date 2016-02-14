@@ -374,6 +374,88 @@
 			});
 		}
 
+		function get_petugas_all() {
+			if ( petugas_layer != undefined ){
+		    	map.removeLayer( petugas_layer );
+		  	}
+
+		  	if ( qlue_layer != undefined ){
+		    	qlue_layer.eachLayer(function(layer) {
+		    		layer.closePopup();
+		    	})
+		  	}
+
+		  	if ( bpbd_layer != undefined ){
+		    	bpbd_layer.eachLayer(function(layer) {
+		    		layer.closePopup();
+		    	})
+		  	}
+
+		  	$('#petugas').prop('checked', true);
+
+			var url = root + 'index.php/petugas/';
+			
+			$.ajax({
+			  	type : "GET",
+			  	async : true,
+			  	global : false,
+			  	url : url,
+			  	dataType : 'json',
+			  	beforeSend:function () {
+		      		console.log('sending');
+		      		$('#loading_petugas').show();
+		    	},
+			  	success : function (data) {
+			    	source = data;
+			    	petugas_layer = L.geoJson(data, {
+			      		pointToLayer: function(feature, latlng) {
+			      			if (feature.properties.jabatan == 'Lurah') {
+			      				return L.marker(latlng, {
+									icon: petugasEselonIcon
+								})
+			      			}else{
+			      				return L.marker(latlng, {
+									icon: petugasIcon
+								})
+			      			}
+			      			
+			      		},
+			      		onEachFeature: function (feature, layer) {
+			     			var popupContent = '<div class="row">' + 
+									'<div class="col-sm-12">' + 
+									'<h4>Detail Petugas</h4>' +
+									'<table class="custom-table">' +
+									'<tr><td valign="top" width="90">Nama Petugas</td><td width="10" valign="top"> : </td><td>' + feature.properties.nama + '</td></tr>' +
+									'<tr><td valign="top" width="90">Jabatan</td><td width="10" valign="top"> : </td><td>' + feature.properties.jabatan + '</td></tr>' +
+									'<tr><td valign="top" width="90">Dinas</td><td width="10" valign="top"> : </td><td>' + feature.properties.dinas + '</td></tr>' +
+									'<tr><td valign="top" width="90">Telepon</td><td width="10" valign="top"> : </td><td>' + feature.properties.phone + '</td></tr>' +
+									'<tr><td valign="top" width="90">Email</td><td width="10" valign="top"> : </td><td>' + feature.properties.email + '</td></tr>' +
+									'<tr><td valign="top" width="90">Login Terakhir</td><td width="10" valign="top"> : </td><td>' + feature.properties.login_terakhir + '</td></tr>' +
+									'</table>' +
+									
+			        			    '</div>' +
+									'</br>' +
+									'</div>';
+
+			          			layer.bindPopup(popupContent, popupOptions);
+			      		}
+			    	});
+			    	petugas_layer.addTo(map);
+			  	},
+		    	complete:function () {
+		      		console.log('send complete');
+		      		$('#loading_petugas').hide();
+				      	// $('#loading_qlue').show();
+				      	// alert('Peta Tematik Telah Dirubah. Silahkan Pilih Menu Tematik.');
+		    	},
+		    	error:function (xhr) {
+		      		console.log(xhr.statusText + xhr.responseText);
+		      		$('#loading_petugas').hide();
+		      		// alert('Terjadi Kesalahan. Silahkan Periksa Koneksi Internet Anda.');
+		    	}
+			});
+		}
+
 		function get_balitower_cctv(x,y) {
 			if ( balitower_cctv_layer != undefined ){
 		    	map.removeLayer( balitower_cctv_layer );
@@ -418,7 +500,83 @@
 									'<div class="col-sm-12">' + 
 									'<h4>CCTV ' + feature.properties.location + '</h4>' +
 									'<table class="custom-table">' +
-									'<tr><td valign="top" colspan="3"><center><iframe src="' + feature.properties.url + '"></iframe></center></td></tr>' +
+									'<tr><td valign="top" colspan="3"><center><iframe src="' + feature.properties.url + '?dvr=false&proto=hls"></iframe></center></td></tr>' +
+									'<tr><td valign="top" width="90">Site Name</td><td width="10" valign="top"> : </td><td>' + feature.properties.site_name + '</td></tr>' +
+									'<tr><td valign="top" width="90">Target View</td><td width="10" valign="top"> : </td><td>' + feature.properties.target_view + '</td></tr>' +
+									'<tr><td valign="top" width="90">Location</td><td width="10" valign="top"> : </td><td>' + feature.properties.location + '</td></tr>' +
+									'</table>' +
+									
+			        			    '</div>' +
+									'</br>' +
+									'</div>';
+
+			          			layer.bindPopup(popupContent, popupOptions);
+			      		}
+			    	});
+			    	balitower_cctv_layer.addTo(map);
+			  	},
+		    	complete:function () {
+		      		console.log('send complete');
+		      		$('#loading_balitower').hide();
+				      	// $('#loading_qlue').show();
+				      	// alert('Peta Tematik Telah Dirubah. Silahkan Pilih Menu Tematik.');
+		    	},
+		    	error:function (xhr) {
+		      		console.log(xhr.statusText + xhr.responseText);
+		      		$('#loading_balitower').hide();
+		      		// alert('Terjadi Kesalahan. Silahkan Periksa Koneksi Internet Anda.');
+		    	}
+			});
+		}
+
+		/*
+		Get balitower cctv all
+		 */
+		function get_balitower_cctv_all() {
+			if ( balitower_cctv_layer != undefined ){
+		    	map.removeLayer( balitower_cctv_layer );
+		  	}
+
+		  	if ( qlue_layer != undefined ){
+		    	qlue_layer.eachLayer(function(layer) {
+		    		layer.closePopup();
+		    	})
+		  	}
+
+		  	if ( bpbd_layer != undefined ){
+		    	bpbd_layer.eachLayer(function(layer) {
+		    		layer.closePopup();
+		    	})
+		  	}
+
+		  	$('#cctv_balitower').prop('checked', true);
+
+			var url = root + 'index.php/cctv/balitower';
+			
+			$.ajax({
+			  	type : "GET",
+			  	async : true,
+			  	global : false,
+			  	url : url,
+			  	dataType : 'json',
+			  	beforeSend:function () {
+		      		console.log('sending');
+		      		$('#loading_balitower').show();
+		    	},
+			  	success : function (data) {
+			    	source = data;
+			    	balitower_cctv_layer = L.geoJson(data, {
+			      		pointToLayer: function(feature, latlng) {
+			      			return L.marker(latlng, {
+								icon: cctvBalitowerIcon
+							})
+			      		},
+			      		onEachFeature: function (feature, layer) {
+			     			var popupContent = '<div class="row">' + 
+									'<div class="col-sm-12">' + 
+									'<h4>CCTV ' + feature.properties.location + '</h4>' +
+									'<table class="custom-table">' +
+									'<tr><td valign="top" colspan="3"><center><iframe src="' + feature.properties.url + '?dvr=false&proto=hls"></iframe></center></td></tr>' +
 									'<tr><td valign="top" width="90">Site Name</td><td width="10" valign="top"> : </td><td>' + feature.properties.site_name + '</td></tr>' +
 									'<tr><td valign="top" width="90">Target View</td><td width="10" valign="top"> : </td><td>' + feature.properties.target_view + '</td></tr>' +
 									'<tr><td valign="top" width="90">Location</td><td width="10" valign="top"> : </td><td>' + feature.properties.location + '</td></tr>' +
@@ -705,7 +863,7 @@
      		zoomControl:false,
 		    zoom: 12,
 		    minZoom:7,
-		    maxZoom:17
+		    maxZoom:19
 		});
 
 		var google_roadmap    = new L.Google('ROADMAP');
@@ -731,9 +889,9 @@
 		
 		var overlays = {};
 		
-		L.control.layers(baseLayers, overlays,{
-		  position : 'topright'
-		}).addTo(map);
+		// L.control.layers(baseLayers, overlays,{
+		//   position : 'bottomright'
+		// }).addTo(map);
 
 		new L.Control.Zoom({ position: 'bottomright' }).addTo(map);
 		
@@ -823,7 +981,10 @@
 		    check = $("#petugas").prop("checked");
 		    // checked
 		    if( check ) {
-		        $('#petugas').show();
+		    	if ( petugas_layer != undefined ){
+			    	map.removeLayer( petugas_layer );
+			  	}
+			  	get_petugas_all();
 		    } 
 		    // unchecked
 		    else {
@@ -837,7 +998,10 @@
 		    check = $("#cctv_balitower").prop("checked");
 		    // checked
 		    if( check ) {
-		        $('#cctv_balitower').show();
+		    	if ( balitower_cctv_layer != undefined ){
+			    	map.removeLayer( balitower_cctv_layer );
+			  	}
+		        get_balitower_cctv_all();
 		    } 
 		    // unchecked
 		    else {

@@ -12,6 +12,8 @@ class Model_petugas extends CI_Model {
 	{
 		$this->db->select('nama, username, email, phone, status, lat, lng, login_terakhir, wilayah, alamat, jabatan, dinas, type, level, nir_nrk, gcm_key');
 		$this->db->from('roam_userpetugas');
+		$this->db->where('lat != ', '0.000000');
+		$this->db->where('lng != ', '0.000000');
 		if ($id_user != false) {
 			$this->db->where('userid', $id_user);
 		}

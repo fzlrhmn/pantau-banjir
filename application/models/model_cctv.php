@@ -17,7 +17,7 @@ class Model_cctv extends CI_Model {
 
 	public function get_cctv_balitower_terdekat($lat, $long)
 	{
-		$this->db->select('*, SQRT( POW( 69.1 * ( app_poi_cctv_balitower.lat - '.$lat.') , 2 ) + POW( 69.1 * ( '.$long.' - app_poi_cctv_balitower.long ) * COS( app_poi_cctv_balitower.lat / 57.3 ) , 2 ) ) AS distance', false);
+		$this->db->select('*, SQRT( POW( 69.1 * ( app_poi_cctv_balitower.lat - '.$lat.') , 2 ) + POW( 69.1 * ( '.$long.' - app_poi_cctv_balitower.lng ) * COS( app_poi_cctv_balitower.lat / 57.3 ) , 2 ) ) AS distance', false);
 		$this->db->from('app_poi_cctv_balitower');
 		$this->db->order_by('distance', 'ASC');
 		$this->db->limit(30);

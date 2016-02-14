@@ -3,7 +3,7 @@
 <head>
 	<title>Pantau Banjir</title>
 	<link rel="stylesheet" type="text/css" href="<?php echo base_url('/bower_components/bootstrap/dist/css/bootstrap.css') ?>">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="<?php echo base_url(); ?>assets/css/L.Control.Locate.min.css" />
     <link rel="stylesheet" href="<?php echo base_url(); ?>assets/css/leaflet-routing-machine.css" />
     <link rel="stylesheet" href="<?php echo base_url(); ?>assets/css/leaflet.extra-markers.css" />
@@ -78,12 +78,74 @@
 						<input type="checkbox" id="cctv_balitower"> CCTV balitower &nbsp;<i class="fa fa-spinner fa-spin" id="loading_balitower"></i>
 				    </label>
 				</div>
+				<hr>
+				<div class="checkbox">
+				    <label>
+						<input type="checkbox" id="report_petajakarta"> Report Qlue Petajakarta &nbsp;<i class="fa fa-spinner fa-spin" id="loading_report_petajakarta"></i>
+				    </label>
+				</div>
+				<hr>
+				<div class="checkbox">
+				    <label>
+						<input type="checkbox" id="pintu_air"> Pintu Air &nbsp;<i class="fa fa-spinner fa-spin" id="loading_pintu_air"></i>
+				    </label>
+				</div>
 			</div>
 		</div>
 	</div>
+
+	<div class="modal fade" tabindex="-1" role="dialog" id="modal">
+	  	<div class="modal-dialog modal-lg">
+	    	<div class="modal-content">
+	      		<div class="modal-header">
+	        		<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+	        		<h4 class="modal-title">Report</h4>
+	      		</div>
+		      	<div class="modal-body">
+		        	<div class="row">
+		        		<div class="col-md-12">
+		        			<table class="table table-bordered">
+		        				<thead>
+		        					<tr>
+		        						<th>Tanggal</th>
+		        						<th>Laporan</th>
+		        						<th>Source</th>
+		        						<th>Action</th>
+		        					</tr>
+		        				</thead>
+		        				<tbody id="report_tbody">
+		        					
+		        				</tbody>
+		        			</table>
+		        		</div>
+		        	</div>
+		      	</div>
+	    	</div><!-- /.modal-content -->
+	  	</div><!-- /.modal-dialog -->
+	</div><!-- /.modal -->
+
+	<div class="modal fade" tabindex="-1" role="dialog" id="modal_pintu_air">
+	  	<div class="modal-dialog modal-lg">
+	    	<div class="modal-content">
+	      		<div class="modal-header">
+	        		<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+	      		</div>
+		      	<div class="modal-body">
+		        	<div class="row">
+		        		<div class="col-md-12" id="chart" style="height:500px">
+		        			
+		        		</div>
+		        	</div>
+		      	</div>
+	    	</div><!-- /.modal-content -->
+	  	</div><!-- /.modal-dialog -->
+	</div><!-- /.modal -->
+
     <script src="<?php echo base_url('/bower_components/jquery/dist/jquery.min.js'); ?>"></script>
     <script src="<?php echo base_url('/bower_components/bootstrap/dist/js/bootstrap.min.js'); ?>"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.6.0/js/bootstrap-datepicker.js"></script>
+    <script type="text/javascript" src="http://www.amcharts.com/lib/3/amcharts.js"></script>
+	<script type="text/javascript" src="http://www.amcharts.com/lib/3/serial.js"></script>
 	<script type="text/javascript">
 		var d = new Date();
 
@@ -135,6 +197,17 @@
 		$('#loading_balitower').ajaxStop(function () {
 		  $(this).show();
 		})
+
+		$('#loading_report_petajakarta').hide();
+		$('#loading_report_petajakarta').ajaxStop(function () {
+		  $(this).show();
+		})
+
+		$('#loading_pintu_air').hide();
+		$('#loading_pintu_air').ajaxStop(function () {
+		  $(this).show();
+		})
+		
 		/**
 		 * 
 		 *  Variables Initialization
@@ -146,6 +219,8 @@
 		var bpbd_layer = null;
 		var petugas_layer = null;
 		var balitower_cctv_layer = null;
+		var report_petajakarta_layer = null;
+		var pintu_air_layer = null;
 
 		/**
 		 * 
@@ -182,9 +257,16 @@
 		  closeOnClick : true
 		};
 
+		var popupOptionsReport = {
+		  maxWidth : '320',
+		  minWidth : '150',
+		  className : 'custom',
+		  closeOnClick : true
+		};
+
 		var petugasIcon = L.ExtraMarkers.icon({
 		    icon: 'fa-user', 
-		    markerColor: 'blue-dark', 
+		    markerColor: 'green', 
 		    prefix: 'fa',
 		    iconColor: 'white',
 		    shape: 'square'
@@ -201,6 +283,22 @@
 		var cctvBalitowerIcon = L.ExtraMarkers.icon({
 		    icon: 'fa-video-camera', 
 		    markerColor: 'orange', 
+		    prefix: 'fa',
+		    iconColor: 'white',
+		    shape: 'square'
+		});
+
+		var reportPetajakartaIcon = L.ExtraMarkers.icon({
+		    icon: 'fa-comment', 
+		    markerColor: 'pink', 
+		    prefix: 'fa',
+		    iconColor: 'white',
+		    shape: 'circle'
+		});
+
+		var pintuAirIcon = L.ExtraMarkers.icon({
+		    icon: 'fa-building-o', 
+		    markerColor: 'cyan', 
 		    prefix: 'fa',
 		    iconColor: 'white',
 		    shape: 'square'
@@ -292,6 +390,159 @@
 		                      'No Flooding';
 		}
 
+		function onEachFeature(feature, layer) {
+		    layer.on({
+		        click: modalDetail
+		    });
+		}
+
+		function modalDetail(e) {
+			var observations 		= e.target.feature.properties.observations;
+			var last_observation 	= observations[observations.length-1];
+			var warning_state 		= last_observation.warningnameid;
+			console.log(warning_state);
+			var chart_pintu_air = AmCharts.makeChart("chart",
+							{
+								"type": "serial",
+								"categoryField": "measuredatetime",
+								"dataDateFormat": "YYYY-MM-DD HH:NN",
+								"categoryAxis": {
+									"minPeriod": "mm",
+									"parseDates": true
+								},
+								"chartCursor": {
+									"enabled": true,
+									"categoryBalloonDateFormat": "JJ:NN"
+								},
+								"chartScrollbar": {
+									"enabled": false
+								},
+								"trendLines": [],
+								"graphs": [
+									{
+										"bullet": "round",
+										"id": "AmGraph-1",
+										"title": e.target.feature.properties.gaugenameid,
+										"valueField": "depth"
+									}
+								],
+								"guides": [],
+								"valueAxes": [
+									{
+										"id": "ValueAxis-1",
+										"title": "Ketinggian Air"
+									}
+								],
+								"allLabels": [],
+								"balloon": {},
+								"legend": {
+									"enabled": true,
+									"useGraphSettings": true
+								},
+								"titles": [
+									{
+										"id": "Title-1",
+										"size": 15,
+										"text": "Timeline Tinggi Pintu Air"
+									}
+								],
+								"dataProvider": e.target.feature.properties.observations
+							}
+						);
+			$('#modal_pintu_air').modal('show');
+		}
+
+		function get_report_modal() {
+			$('#modal').modal('show');
+		}
+
+		function tambah_titik(x, y, pkey){
+
+		  map.panTo(new L.LatLng(x, y));
+		  map.setZoom(16);
+
+		  report_petajakarta_layer.eachLayer(function (layer) {
+		  	layer.closePopup();
+		    if ( layer.feature.properties.pkey == pkey ) {
+		      layer.openPopup();
+		    };
+		  });
+		  $('#modal').modal('hide');
+		}
+
+		function get_report_petajakarta_layer() {
+			$('#report_tbody').empty();
+			if ( report_petajakarta_layer != undefined ){
+		    	map.removeLayer( report_petajakarta_layer );
+		  	}
+
+		  	if ( qlue_layer != undefined ){
+		    	qlue_layer.eachLayer(function(layer) {
+		    		layer.closePopup();
+		    	})
+		  	}
+
+		  	if ( bpbd_layer != undefined ){
+		    	bpbd_layer.eachLayer(function(layer) {
+		    		layer.closePopup();
+		    	})
+		  	}
+
+		  	$('#report_petajakarta').prop('checked', true);
+
+			var url = 'https://petajakarta.org/banjir/data/api/v2/reports/confirmed';
+			
+			$.ajax({
+			  	type : "GET",
+			  	async : true,
+			  	global : false,
+			  	url : url,
+			  	dataType : 'json',
+			  	beforeSend:function () {
+		      		console.log('sending');
+		      		$('#loading_report_petajakarta').show();
+		    	},
+			  	success : function (data) {
+			    	source = data;
+			    	report_petajakarta_layer = L.geoJson(data, {
+			      		pointToLayer: function(feature, latlng) {
+			      			return L.marker(latlng, {
+									icon: reportPetajakartaIcon
+								})
+			      			
+			      		},
+			      		onEachFeature: function (feature, layer) {
+			      			$('#report_tbody').append('<tr><td>'+feature.properties.created_at+'</td><td>'+feature.properties.text+'</td><td>'+feature.properties.source+'</td><td><button class="btn btn-info btn-md" onclick="tambah_titik('+feature.geometry.coordinates[1]+','+feature.geometry.coordinates[0]+','+feature.properties.pkey+')">Ke Lokasi</button></td></tr>');
+			     			var popupContent = '<div class="row">' + 
+									'<div class="col-sm-12">' + 
+									'<table class="custom-table">' +
+									'<tr><td valign="top" colspan="3"><center><h4>' + feature.properties.title + '</h4></center></td></tr>' +
+									'<tr><td valign="top" colspan="3"><center><img width="250" src="' + feature.properties.image_url + '"></img></center></td></tr>' +
+									'<tr><td valign="top" width="90">Aduan</td><td width="10" valign="top"> : </td><td>' + feature.properties.text + '</td></tr>' +
+									'<tr><td valign="top" width="90">Tanggal</td><td width="10" valign="top"> : </td><td>' + feature.properties.created_at + '</td></tr>' +
+									// '<tr><td valign="top" width="90">Petugas</td><td width="10" valign="top"> : </td><td><button class="btn btn-sm btn-success" onclick="get_petugas(' + feature.geometry.coordinates[1] + ',' + feature.geometry.coordinates[0] + ')">Cari Petugas</button></td></tr>' +
+									'</table>' +
+									
+			        			    '</div>' +
+									'</br>' +
+									'</div>';
+
+			          			layer.bindPopup(popupContent, popupOptionsReport);
+			      		}
+			    	});
+			    	report_petajakarta_layer.addTo(map);
+			  	},
+		    	complete:function () {
+		      		console.log('send complete');
+		      		$('#loading_report_petajakarta').hide();
+		    	},
+		    	error:function (xhr) {
+		      		console.log(xhr.statusText + xhr.responseText);
+		      		$('#loading_report_petajakarta').hide();
+		    	}
+			});
+		}
+
 		function get_petugas(x,y) {
 			if ( petugas_layer != undefined ){
 		    	map.removeLayer( petugas_layer );
@@ -363,13 +614,10 @@
 		    	complete:function () {
 		      		console.log('send complete');
 		      		$('#loading_petugas').hide();
-				      	// $('#loading_qlue').show();
-				      	// alert('Peta Tematik Telah Dirubah. Silahkan Pilih Menu Tematik.');
 		    	},
 		    	error:function (xhr) {
 		      		console.log(xhr.statusText + xhr.responseText);
 		      		$('#loading_petugas').hide();
-		      		// alert('Terjadi Kesalahan. Silahkan Periksa Koneksi Internet Anda.');
 		    	}
 			});
 		}
@@ -445,13 +693,10 @@
 		    	complete:function () {
 		      		console.log('send complete');
 		      		$('#loading_petugas').hide();
-				      	// $('#loading_qlue').show();
-				      	// alert('Peta Tematik Telah Dirubah. Silahkan Pilih Menu Tematik.');
 		    	},
 		    	error:function (xhr) {
 		      		console.log(xhr.statusText + xhr.responseText);
 		      		$('#loading_petugas').hide();
-		      		// alert('Terjadi Kesalahan. Silahkan Periksa Koneksi Internet Anda.');
 		    	}
 			});
 		}
@@ -518,13 +763,10 @@
 		    	complete:function () {
 		      		console.log('send complete');
 		      		$('#loading_balitower').hide();
-				      	// $('#loading_qlue').show();
-				      	// alert('Peta Tematik Telah Dirubah. Silahkan Pilih Menu Tematik.');
 		    	},
 		    	error:function (xhr) {
 		      		console.log(xhr.statusText + xhr.responseText);
 		      		$('#loading_balitower').hide();
-		      		// alert('Terjadi Kesalahan. Silahkan Periksa Koneksi Internet Anda.');
 		    	}
 			});
 		}
@@ -594,15 +836,61 @@
 		    	complete:function () {
 		      		console.log('send complete');
 		      		$('#loading_balitower').hide();
-				      	// $('#loading_qlue').show();
-				      	// alert('Peta Tematik Telah Dirubah. Silahkan Pilih Menu Tematik.');
 		    	},
 		    	error:function (xhr) {
 		      		console.log(xhr.statusText + xhr.responseText);
 		      		$('#loading_balitower').hide();
-		      		// alert('Terjadi Kesalahan. Silahkan Periksa Koneksi Internet Anda.');
 		    	}
 			});
+		}
+
+		/*
+		Set Pintu Air Layer
+		 */
+		function set_pintu_air_layer() {
+		  	if ( pintu_air_layer != undefined ){
+		    	map.removeLayer( pintu_air_layer );
+		  	}
+		  	if ( petugas_layer != undefined ){
+		    	map.removeLayer( petugas_layer );
+		    	$('#petugas').prop('checked', false);
+		  	}
+		  	if ( balitower_cctv_layer != undefined ){
+		    	map.removeLayer( balitower_cctv_layer );
+		    	$('#cctv_balitower').prop('checked', false);
+		  	}
+
+		  	var url = "https://petajakarta.org/banjir/data/api/v2/infrastructure/floodgauges";
+
+		  	$.ajax({
+		    	type : "GET",
+		    	async : true,
+		    	global : false,
+		    	url : url,
+		    	// dataType : 'json',
+		    	beforeSend:function () {
+		      		console.log('sending');
+		      		$('#loading_pintu_air').show();
+		    	},
+		    	success: function (data) {
+		      		pintu_air_layer = L.geoJson(data, {
+		        		pointToLayer: function(feature, latlng) {
+			      			return L.marker(latlng, {
+								icon: pintuAirIcon
+							})
+			      		},
+		        		onEachFeature: onEachFeature
+		      		});
+		      		pintu_air_layer.addTo(map);
+		    	},
+		    	complete:function () {
+		      		console.log('send complete');
+		      		$('#loading_pintu_air').hide();
+		    	},
+		    	error:function (xhr) {
+		      		console.log(xhr.statusText + xhr.responseText);
+		    	}
+		  	});
 		}
 
 		/*
@@ -614,9 +902,11 @@
 		  	}
 		  	if ( petugas_layer != undefined ){
 		    	map.removeLayer( petugas_layer );
+		    	$('#petugas').prop('checked', false);
 		  	}
 		  	if ( balitower_cctv_layer != undefined ){
 		    	map.removeLayer( balitower_cctv_layer );
+		    	$('#cctv_balitower').prop('checked', false);
 		  	}
 
 		  	var qlue_date_start 	= $('#qlue_date_start').val();
@@ -685,12 +975,9 @@
 		    	complete:function () {
 		      		console.log('send complete');
 		      		$('#loading_qlue').hide();
-				      	// $('#loading_qlue').show();
-				      	// alert('Peta Tematik Telah Dirubah. Silahkan Pilih Menu Tematik.');
 		    	},
 		    	error:function (xhr) {
 		      		console.log(xhr.statusText + xhr.responseText);
-		      		// alert('Terjadi Kesalahan. Silahkan Periksa Koneksi Internet Anda.');
 		    	}
 		  	});
 		}
@@ -756,12 +1043,9 @@
 		    	complete:function () {
 		      		console.log('send complete');
 		      		$('#loading_petajakarta').hide();
-				      	// $('#loading_tematik').show();
-				      	// alert('Peta Tematik Telah Dirubah. Silahkan Pilih Menu Tematik.');
 		    	},
 		    	error:function (xhr) {
 		      		console.log(xhr.statusText + xhr.responseText);
-		      		// alert('Terjadi Kesalahan. Silahkan Periksa Koneksi Internet Anda.');
 		    	}
 		  	});
 		}
@@ -848,12 +1132,9 @@
 		    	complete:function () {
 		      		console.log('send complete');
 		      		$('#loading_bpbd').hide();
-				      	// $('#loading_tematik').show();
-				      	// alert('Peta Tematik Telah Dirubah. Silahkan Pilih Menu Tematik.');
 		    	},
 		    	error:function (xhr) {
 		      		console.log(xhr.statusText + xhr.responseText);
-		      		// alert('Terjadi Kesalahan. Silahkan Periksa Koneksi Internet Anda.');
 		    	}
 		  	});
 		}
@@ -889,13 +1170,11 @@
 		
 		var overlays = {};
 		
-		// L.control.layers(baseLayers, overlays,{
-		//   position : 'bottomright'
-		// }).addTo(map);
-
-		new L.Control.Zoom({ position: 'bottomright' }).addTo(map);
+		L.control.layers(baseLayers, overlays,{
+		  position : 'topright'
+		}).addTo(map);
 		
-		var legend = L.control({position: 'bottomleft'});
+		var legend = L.control({position: 'bottomright'});
 
 		legend.onAdd = function (map) {
 		  var div = L.DomUtil.create('div', 'info-legend'),
@@ -909,6 +1188,17 @@
 		};
 
 		legend.addTo(map);
+
+		var button = L.control({position: 'topright'});
+
+		button.onAdd = function (map) {
+		  var div = L.DomUtil.create('div', 'button-legend');
+		  div.innerHTML += '<button class="btn btn-md btn-default" onclick="get_report_modal()"><i class="fa fa-comment"></i></button>';
+		  return div;
+		};
+
+		button.addTo(map);
+		new L.Control.Zoom({ position: 'topright' }).addTo(map);
 
 		map.on('baselayerchange', function(e) {
 		  console.log(e.name);
@@ -1011,6 +1301,41 @@
 		    }
 		})
 
+		$('#report_petajakarta').change(function () {
+		    check = $("#report_petajakarta").prop("checked");
+		    // checked
+		    if( check ) {
+		    	if ( report_petajakarta_layer != undefined ){
+			    	map.removeLayer( report_petajakarta_layer );
+			  	}
+			  	get_report_petajakarta_layer();
+		    } 
+		    // unchecked
+		    else {
+				$('#report_tbody').empty();
+		        if ( report_petajakarta_layer != undefined ){
+			    	map.removeLayer( report_petajakarta_layer );
+			  	}
+		    }
+		})
+
+		$('#pintu_air').change(function () {
+		    check = $("#pintu_air").prop("checked");
+		    // checked
+		    if( check ) {
+		    	if ( pintu_air_layer != undefined ){
+			    	map.removeLayer( pintu_air_layer );
+			  	}
+		        set_pintu_air_layer();
+		    } 
+		    // unchecked
+		    else {
+		        if ( pintu_air_layer != undefined ){
+			    	map.removeLayer( pintu_air_layer );
+			  	}
+		    }
+		})
+
 		$('#refresh_qlue').click(function(e) {
 			e.preventDefault();
 			set_qlue_layer();
@@ -1019,6 +1344,9 @@
 		$('#refresh_bpbd').click(function(e) {
 			e.preventDefault();
 			set_bpbd_layer();
+		})
+		$('#modal_pintu_air').on('shown.bs.modal', function (e) {
+			chart_pintu_air.animateAgain();
 		})
 	</script>
 </body>

@@ -124,6 +124,38 @@
 	  	</div><!-- /.modal-dialog -->
 	</div><!-- /.modal -->
 
+	<div class="modal fade" tabindex="-1" role="dialog" id="modal_resume">
+	  	<div class="modal-dialog modal-lg">
+	    	<div class="modal-content">
+	      		<div class="modal-header">
+	        		<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+	        		<h4 class="modal-title">Resume Banjir</h4>
+	      		</div>
+		      	<div class="modal-body">
+		        	<div class="row">
+		        		<div class="col-md-12">
+		        			<div>
+		        			  	<!-- Nav tabs -->
+		        			  	<ul class="nav nav-tabs" role="tablist">
+		        			    	<li role="presentation" class="active"><a href="#tab_qlue" aria-controls="tab_qlue" role="tab" data-toggle="tab">Laporan Qlue</a></li>
+		        			    	<li role="presentation"><a href="#tab_bpbd" aria-controls="tab_bpbd" role="tab" data-toggle="tab">BPBD</a></li>
+		        			    	<li role="presentation"><a href="#tab_petajakarta" aria-controls="tab_petajakarta" role="tab" data-toggle="tab">Petajakarta</a></li>
+		        			  	</ul>
+
+		        			  <!-- Tab panes -->
+		        			  	<div class="tab-content">
+		        			    	<div role="tabpanel" class="tab-pane fade in active" id="tab_qlue">...</div>
+		        			    	<div role="tabpanel" class="tab-pane" id="tab_bpbd">...</div>
+		        			    	<div role="tabpanel" class="tab-pane" id="tab_petajakarta">...</div>
+		        			  	</div>
+		        			</div>
+		        		</div>
+		        	</div>
+		      	</div>
+	    	</div><!-- /.modal-content -->
+	  	</div><!-- /.modal-dialog -->
+	</div><!-- /.modal -->
+
 	<div class="modal fade" tabindex="-1" role="dialog" id="modal_pintu_air">
 	  	<div class="modal-dialog modal-lg">
 	    	<div class="modal-content">
@@ -435,15 +467,11 @@
 								],
 								"allLabels": [],
 								"balloon": {},
-								"legend": {
-									"enabled": true,
-									"useGraphSettings": true
-								},
 								"titles": [
 									{
 										"id": "Title-1",
 										"size": 15,
-										"text": "Timeline Tinggi Pintu Air"
+										"text": "Timeline Tinggi Pintu Air " + e.target.feature.properties.gaugenameid
 									}
 								],
 								"dataProvider": e.target.feature.properties.observations
@@ -454,6 +482,10 @@
 
 		function get_report_modal() {
 			$('#modal').modal('show');
+		}
+
+		function get_resume_modal() {
+			$('#modal_resume').modal('show');
 		}
 
 		function tambah_titik(x, y, pkey){
@@ -1198,6 +1230,17 @@
 		};
 
 		button.addTo(map);
+
+		var resume_button = L.control({position: 'topright'});
+
+		resume_button.onAdd = function (map) {
+		  var div = L.DomUtil.create('div', 'button-legend');
+		  div.innerHTML += '<button class="btn btn-md btn-default" onclick="get_resume_modal()"><i class="fa fa-file-text-o"></i></button>';
+		  return div;
+		};
+
+		resume_button.addTo(map);
+
 		new L.Control.Zoom({ position: 'topright' }).addTo(map);
 
 		map.on('baselayerchange', function(e) {

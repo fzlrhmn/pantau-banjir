@@ -883,14 +883,6 @@
 		  	if ( pintu_air_layer != undefined ){
 		    	map.removeLayer( pintu_air_layer );
 		  	}
-		  	if ( petugas_layer != undefined ){
-		    	map.removeLayer( petugas_layer );
-		    	$('#petugas').prop('checked', false);
-		  	}
-		  	if ( balitower_cctv_layer != undefined ){
-		    	map.removeLayer( balitower_cctv_layer );
-		    	$('#cctv_balitower').prop('checked', false);
-		  	}
 
 		  	var url = "https://petajakarta.org/banjir/data/api/v2/infrastructure/floodgauges";
 
